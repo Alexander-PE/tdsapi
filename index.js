@@ -1,41 +1,112 @@
-require('dotenv').config()// npm i dotenv
-const express = require('express')// npm i express
-const cors = require('cors')// npm i cors
+require('dotenv').config()
+const express = require('express')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const cors = require('cors')
 const app = express()
 const PORT = process.env.PORT
 
-const Desaparecido = require('./mongo.js')
+const Desaparecido = require('./Desaparecido.js')
+const User = require('./User.js')
 
-app.use(cors)
+app.use(cors())
 app.use(express.json())
 
-app.get('/', async (req, res) => {
-  const desap = await Desaparecido.find()
-  res.json(desap)
+app.get('/', (req, res) => {
+  res.send('<h1>Desaparecidos API</h1>')
 })
 
-app.get('/:id', async (req, res) => {
-  const id = await Number(req.params.id)
-  const desap = await Desaparecido.findById(id)
-  if (!desap) {
-    return res.status(404).json({ error: 'Persona, animal o cosa desaparecida no encontrada' })
+app.post('/register', async (req, res) => {
+  if (!req.body || req.body === undefined) {
+    return res.status(400).json({ error: 'content missing' })
   }
-  res.json(desap)
+
+  const { name, email, password } = req.body
+
+  // Validar que se hayan proporcionado una dirección de correo electrónico y una contraseña
+  if (!email || !password) {
+    return res.status(400).send('Proporciona una dirección de correo electrónico y una contraseña')
+  }
+
+  try {
+    // Verificar si ya existe un usuario con la dirección de correo electrónico proporcionada
+    const existingUser = await User.find({ email })
+    if (existingUser.length > 1) {
+      return res.status(400).send('Ya existe una cuenta con la dirección de correo electrónico proporcionada')
+    }
+
+    // Hashear la contraseña antes de guardarla en la base de datos
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Crear un nuevo usuario y guardarlo en la base de datos
+    const user = new User({ name, email, password: hashedPassword })
+    await user.save()
+
+    res.status(201).send('Usuario creado exitosamente')
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Error al crear el usuario')
+  }
+
+  // const user = new User(req.body)
+  // user.save()
+  // res.status(201).json(user)
 })
 
-app.delete('/:id', (req, res) => {
-  const id = Number(req.params.id)
-  Desaparecido.deleteOne({ id }).then(desap => {
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body
+
+  // Validar que se hayan proporcionado una dirección de correo electrónico y una contraseña
+  if (!email || !password) {
+    return res.status(400).send('Proporciona una dirección de correo electrónico y una contraseña')
+  }
+
+  try {
+    // Verificar si existe un usuario con la dirección de correo electrónico proporcionada
+    const user = await User.findOne({ email })
+    if (!user) {
+      return res.status(401).send('No existe un usuario con este correo')
+    }
+
+    // Verificar que la contraseña proporcionada coincida con la contraseña almacenada en la base de datos
+    const passwordMatch = bcrypt.compareSync(password, user.password)
+    if (!passwordMatch) {
+      return res.status(401).send('Credenciales inválidas')
+    }
+
+    // Crear un token JWT que contenga el ID del usuario
+    const token = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET)
+    res.json({ uid: user.id, token })
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Error al iniciar sesión')
+  }
+})
+
+app.get('/desaparecidos', (req, res) => {
+  Desaparecido.find({}).then(desap => res.json(desap))
+  // res.json(desap)
+})
+
+app.get('/desaparecidos/:id', (req, res) => {
+  const id = req.params.id
+  Desaparecido.findById(id).then(desap => res.json(desap))
+  // res.json(desap)
+})
+
+app.delete('/desaparecidos/:id', (req, res) => {
+  const id = req.params.id
+  Desaparecido.findByIdAndDelete(id).then(desap => {
     res.json(desap)
   })
 })
 
-app.post('/', async (req, res) => {
+app.post('/desaparecidos', (req, res) => {
   if (!req.body || req.body === undefined) {
     return res.status(400).json({ error: 'content missing' })
   }
   const desap = new Desaparecido(req.body)
-  await desap.save()
+  desap.save()
   res.status(201).json(desap)
 })
 

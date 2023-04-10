@@ -4,12 +4,12 @@ const url = process.env.MONGODB_URL
 
 mongoose.connect(url)
 
-const desapSchema = mongoose.Schema({
+const desaparecidoSchema = mongoose.Schema({
   name: String,
   reward: String,
   contactNumber: String,
   description: String,
-  missingDate: new Date(),
+  missingDate: Date,
   lastSeenLocation: String,
   tipo: String,
   latitude: {
@@ -21,10 +21,13 @@ const desapSchema = mongoose.Schema({
     required: false
   },
   imageLink: String,
-  createdBy: String
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 })
 
-desapSchema.set('toJSON', {
+desaparecidoSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
@@ -32,4 +35,4 @@ desapSchema.set('toJSON', {
   }
 })
 
-module.exports = mongoose.model('Desaparecido', desapSchema)
+module.exports = mongoose.model('Desaparecido', desaparecidoSchema)
