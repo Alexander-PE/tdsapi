@@ -47,10 +47,6 @@ app.post('/register', async (req, res) => {
     console.error(error)
     res.status(500).send('Error al crear el usuario')
   }
-
-  // const user = new User(req.body)
-  // user.save()
-  // res.status(201).json(user)
 })
 
 app.post('/login', async (req, res) => {
@@ -85,13 +81,11 @@ app.post('/login', async (req, res) => {
 
 app.get('/desaparecidos', (req, res) => {
   Desaparecido.find({}).then(desap => res.json(desap))
-  // res.json(desap)
 })
 
 app.get('/desaparecidos/:id', (req, res) => {
   const id = req.params.id
   Desaparecido.findById(id).then(desap => res.json(desap))
-  // res.json(desap)
 })
 
 app.delete('/desaparecidos/:id', (req, res) => {
