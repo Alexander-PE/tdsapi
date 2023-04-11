@@ -95,6 +95,19 @@ app.delete('/desaparecidos/:id', (req, res) => {
   })
 })
 
+app.put('/desaparecidos/:id', async (req, res) => {
+  try {
+    const id = req.params.id
+    const values = req.body
+    const item = await Desaparecido.findByIdAndUpdate(id, values).then(desap => res.json(desap))
+    if (!item) {
+      return res.status(404).json({ error: 'item not found' })
+    }
+  } catch (err) {
+    console.log(err)
+  }
+})
+
 app.post('/desaparecidos', (req, res) => {
   if (!req.body || req.body === undefined) {
     return res.status(400).json({ error: 'content missing' })
