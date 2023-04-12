@@ -98,7 +98,6 @@ app.get('/desaparecidos/:id', (req, res) => {
 app.delete('/desaparecidos/:id', (req, res) => {
   const id = req.params.id
   Desaparecido.findByIdAndDelete(id).then(desap => {
-    console.log(desap)
     cloudinary.uploader.destroy(desap.pubId)
     res.status(200).json(desap)
   })
