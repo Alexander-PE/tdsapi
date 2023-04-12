@@ -4,7 +4,14 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
 const app = express()
+const cloudinary = require('cloudinary').v2
 const PORT = process.env.PORT
+
+cloudinary.config({
+  cloud_name: 'djeswamlh',
+  api_key: '212916675997174',
+  api_secret: 'ZfLrVaa-tJalUXpnisCMyYJmRVM'
+})
 
 const Desaparecido = require('./Desaparecido.js')
 const User = require('./User.js')
@@ -91,7 +98,9 @@ app.get('/desaparecidos/:id', (req, res) => {
 app.delete('/desaparecidos/:id', (req, res) => {
   const id = req.params.id
   Desaparecido.findByIdAndDelete(id).then(desap => {
-    res.json(desap)
+    console.log(desap)
+    cloudinary.uploader.destroy(desap.pubId)
+    res.status(200).json(desap)
   })
 })
 

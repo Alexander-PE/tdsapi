@@ -21,6 +21,7 @@ const desaparecidoSchema = mongoose.Schema({
     required: false
   },
   imageLink: String,
+  pubId: String,
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
