@@ -6,7 +6,10 @@ mongoose.connect(url)
 
 const desaparecidoSchema = mongoose.Schema({
   name: String,
-  reward: String,
+  reward: {
+    type: String,
+    required: false
+  },
   contactNumber: String,
   description: String,
   missingDate: Date,
